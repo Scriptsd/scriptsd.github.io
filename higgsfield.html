@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ربط Higgsfield</title>
+<style>
+  :root{
+    --bg:#0b0d12; --panel:#141824; --panel2:#1b2130; --text:#e8ebf2; --muted:#9aa3b5;
+    --accent:#7c9dff; --accent2:#5a7de0; --border:#2a3142; --ok:#4ade80; --err:#f87171; --warn:#fbbf24;
+  }
+  @media (prefers-color-scheme: light){
+    :root{ --bg:#f5f6fa; --panel:#ffffff; --panel2:#f0f2f8; --text:#1a1d29; --muted:#5b6478; --border:#dde1ec; }
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.6;
+  }
+  .wrap{max-width:760px; margin:0 auto; padding:32px 20px 80px;}
+  h1{font-size:1.5rem; margin:0 0 4px;}
+  .sub{color:var(--muted); font-size:.92rem; margin:0 0 24px;}
+  .card{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:20px; margin-bottom:16px;}
+  .card h2{font-size:1rem; margin:0 0 14px; display:flex; align-items:center; gap:8px;}
+  label{display:block; font-size:.85rem; color:var(--muted); margin:12px 0 6px;}
+  label:first-of-type{margin-top:0;}
+  input[type=text], input[type=password], input[type=url], textarea, select{
+    width:100%; background:var(--panel2); border:1px solid var(--border); color:var(--text);
+    padding:10px 12px; border-radius:8px; font-size:.92rem; font-family:inherit;
+  }
+  textarea{resize:vertical; min-height:70px;}
+  .row{display:flex; gap:12px;}
+  .row > *{flex:1;}
+  .modes{display:flex; gap:8px; margin-bottom:4px;}
+  .mode-btn{
+    flex:1; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--panel2);
+    color:var(--text); cursor:pointer; font-size:.9rem; text-align:center;
+  }
+  .mode-btn.active{border-color:var(--accent); background:color-mix(in srgb, var(--accent) 18%, var(--panel2)); color:var(--accent);}
+  .check{display:flex; align-items:center; gap:8px; margin-top:14px; font-size:.85rem; color:var(--muted);}
+  .check input{width:auto;}
+  button.primary{
+    width:100%; margin-top:18px; padding:12px; border:none; border-radius:9px; cursor:pointer;
+    background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; font-size:.95rem; font-weight:600;
+  }
+  button.primary:disabled{opacity:.55; cursor:not-allowed;}
+  button.link{background:none; border:none; color:var(--accent); cursor:pointer; font-size:.82rem; padding:0;}
+  details{margin-top:14px;}
+  details summary{cursor:pointer; font-size:.85rem; color:var(--muted);}
+  .status{margin-top:16px; padding:12px 14px; border-radius:9px; font-size:.88rem; display:none;}
+  .status.show{display:block;}
+  .status.info{background:color-mix(in srgb, var(--accent) 14%, transparent); color:var(--accent); border:1px solid color-mix(in srgb, var(--accent) 35%, transparent);}
+  .status.ok{background:color-mix(in srgb, var(--ok) 14%, transparent); color:var(--ok); border:1px solid color-mix(in srgb, var(--ok) 35%, transparent);}
+  .status.err{background:color-mix(in srgb, var(--err) 14%, transparent); color:var(--err); border:1px solid color-mix(in srgb, var(--err) 35%, transparent);}
+  .result{margin-top:14px;}
+  .result video, .result img{width:100%; border-radius:10px; display:block;}
+  .result a{display:inline-block; margin-top:8px; font-size:.85rem; color:var(--accent);}
+  .note{font-size:.8rem; color:var(--muted); margin-top:8px;}
+  .note code{background:var(--panel2); padding:1px 5px; border-radius:4px; font-size:.78rem;}
+  .warn-box{
+    background:color-mix(in srgb, var(--warn) 14%, transparent); border:1px solid color-mix(in srgb, var(--warn) 40%, transparent);
+    color:var(--text); border-radius:10px; padding:12px 14px; font-size:.85rem; margin-bottom:16px;
+  }
+  a{color:var(--accent);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ربط منصة Higgsfield</h1>
+  <p class="sub">توليد فيديو من نص أو من صورة عبر Higgsfield API، مباشرة من متصفحك.</p>
+
+  <div class="warn-box">
+    هذا الموقع استضافة ثابتة (GitHub Pages) بدون أي خادم خلفي. مفتاحك يُخزَّن فقط داخل متصفحك (localStorage) على جهازك،
+    ولا يمر عبر أي خادم تابع لهذا الموقع — الطلب يذهب مباشرة من متصفحك إلى واجهة Higgsfield.
+    لا تحفظ المفتاح على جهاز عام أو مشترك. كذلك، بعض واجهات الـ API المخصّصة للاستخدام من خادم (وليس من متصفح)
+    قد ترفض الطلبات القادمة من المتصفح بسبب سياسة CORS — إن ظهرت لك رسالة خطأ شبكة عند التوليد فهذا هو السبب الأرجح،
+    ولا يوجد حل من جهة المتصفح لهذه الحالة.
+  </div>
+
+  <div class="card">
+    <h2>بيانات الاعتماد</h2>
+    <label for="baseUrl">رابط الـ API الأساسي (Base URL)</label>
+    <input type="url" id="baseUrl" value="https://platform.higgsfield.ai">
+
+    <div class="row">
+      <div>
+        <label for="keyId">Key ID</label>
+        <input type="text" id="keyId" autocomplete="off" placeholder="your-key-id">
+      </div>
+      <div>
+        <label for="keySecret">Key Secret</label>
+        <input type="password" id="keySecret" autocomplete="off" placeholder="your-key-secret">
+      </div>
+    </div>
+    <p class="note">تُرسَل بيانات الاعتماد كترويسة <code>Authorization: Key KEY_ID:KEY_SECRET</code>. يمكنك الحصول عليها من
+      <a href="https://cloud.higgsfield.ai" target="_blank" rel="noopener">cloud.higgsfield.ai</a>.</p>
+
+    <div class="check">
+      <input type="checkbox" id="remember">
+      <label for="remember" style="margin:0; display:inline;">احفظ بيانات الاعتماد على هذا المتصفح فقط</label>
+    </div>
+    <button class="link" id="clearSaved" style="margin-top:8px;">مسح البيانات المحفوظة</button>
+  </div>
+
+  <div class="card">
+    <h2>التوليد</h2>
+    <div class="modes">
+      <button type="button" class="mode-btn active" data-mode="video">نص → فيديو</button>
+      <button type="button" class="mode-btn" data-mode="image2video">صورة → فيديو</button>
+    </div>
+
+    <label for="prompt">الوصف النصي (Prompt)</label>
+    <textarea id="prompt" placeholder="مثال: لقطة سينمائية بطيئة لغروب الشمس فوق الجبال"></textarea>
+
+    <div id="imageUrlField" style="display:none;">
+      <label for="imageUrl">رابط الصورة (image URL)</label>
+      <input type="url" id="imageUrl" placeholder="https://example.com/photo.jpg">
+      <p class="note">لأن الموقع ثابت بدون خادم، يجب أن تكون الصورة مرفوعة مسبقًا على رابط عام (وليس ملفًا من جهازك).</p>
+    </div>
+
+    <details>
+      <summary>إعدادات متقدمة (مسار النموذج)</summary>
+      <label for="modelPath">مسار النموذج / الـ endpoint</label>
+      <input type="text" id="modelPath" placeholder="مثال: /v1/image2video/dop">
+      <p class="note">
+        القيمة الموثّقة رسميًا لتوليد فيديو من صورة هي <code>/v1/image2video/dop</code>.
+        أما مسار توليد الفيديو من نص فقط فيختلف حسب النموذج المتاح لحسابك (مثل <code>kling3_0</code> أو غيره) —
+        تحقق منه في <a href="https://docs.higgsfield.ai" target="_blank" rel="noopener">docs.higgsfield.ai</a>
+        أو لوحة تحكمك، والصقه هنا. لن يعمل التوليد دون تعبئة هذا الحقل بمسار صحيح.
+      </p>
+    </details>
+
+    <button class="primary" id="generateBtn">توليد</button>
+
+    <div class="status" id="status"></div>
+    <div class="result" id="result"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const baseUrlEl = $('baseUrl'), keyIdEl = $('keyId'), keySecretEl = $('keySecret'),
+        rememberEl = $('remember'), promptEl = $('prompt'), imageUrlEl = $('imageUrl'),
+        modelPathEl = $('modelPath'), statusEl = $('status'), resultEl = $('result'),
+        generateBtn = $('generateBtn'), imageUrlField = $('imageUrlField');
+
+  let mode = 'video';
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      mode = btn.dataset.mode;
+      imageUrlField.style.display = mode === 'image2video' ? 'block' : 'none';
+      if (mode === 'image2video' && !modelPathEl.value) modelPathEl.value = '/v1/image2video/dop';
+    });
+  });
+
+  const STORE_KEY = 'higgsfield_creds';
+  const saved = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+  if (saved) {
+    baseUrlEl.value = saved.baseUrl || baseUrlEl.value;
+    keyIdEl.value = saved.keyId || '';
+    keySecretEl.value = saved.keySecret || '';
+    rememberEl.checked = true;
+  }
+
+  $('clearSaved').addEventListener('click', () => {
+    localStorage.removeItem(STORE_KEY);
+    keyIdEl.value = ''; keySecretEl.value = ''; rememberEl.checked = false;
+    setStatus('تم مسح بيانات الاعتماد المحفوظة على هذا الجهاز.', 'info');
+  });
+
+  function setStatus(msg, kind) {
+    statusEl.textContent = msg;
+    statusEl.className = 'status show ' + (kind || 'info');
+  }
+  function clearResult() { resultEl.innerHTML = ''; }
+
+  function persistIfNeeded() {
+    if (rememberEl.checked) {
+      localStorage.setItem(STORE_KEY, JSON.stringify({
+        baseUrl: baseUrlEl.value.trim(), keyId: keyIdEl.value.trim(), keySecret: keySecretEl.value
+      }));
+    } else {
+      localStorage.removeItem(STORE_KEY);
+    }
+  }
+
+  async function pollStatus(statusUrl, headers) {
+    const start = Date.now();
+    const timeoutMs = 5 * 60 * 1000;
+    while (Date.now() - start < timeoutMs) {
+      const res = await fetch(statusUrl, { headers });
+      if (!res.ok) throw new Error('فشل الاستعلام عن الحالة: HTTP ' + res.status);
+      const data = await res.json();
+      const st = (data.status || '').toLowerCase();
+      if (st === 'completed') return data;
+      if (st === 'failed' || st === 'nsfw' || st === 'cancelled') {
+        throw new Error('فشل التوليد. الحالة: ' + st);
+      }
+      setStatus('جارٍ التوليد... الحالة الحالية: ' + (st || 'قيد المعالجة'), 'info');
+      await new Promise(r => setTimeout(r, 2500));
+    }
+    throw new Error('انتهت المهلة أثناء انتظار النتيجة.');
+  }
+
+  function renderResult(data) {
+    clearResult();
+    const videoUrl = data.video?.url || data.results?.raw?.url || data.jobs?.[0]?.results?.raw?.url;
+    const imageUrl = data.images?.[0]?.url;
+    const url = videoUrl || imageUrl;
+    if (!url) {
+      resultEl.innerHTML = '<pre style="white-space:pre-wrap; font-size:.8rem; color:var(--muted);">' +
+        JSON.stringify(data, null, 2).replace(/</g, '&lt;') + '</pre>';
+      return;
+    }
+    if (videoUrl) {
+      resultEl.innerHTML = '<video controls src="' + url + '"></video><a href="' + url + '" target="_blank" rel="noopener">فتح الملف في تبويب جديد</a>';
+    } else {
+      resultEl.innerHTML = '<img src="' + url + '" alt="النتيجة"><a href="' + url + '" target="_blank" rel="noopener">فتح الملف في تبويب جديد</a>';
+    }
+  }
+
+  generateBtn.addEventListener('click', async () => {
+    clearResult();
+    const baseUrl = baseUrlEl.value.trim().replace(/\/+$/, '');
+    const keyId = keyIdEl.value.trim();
+    const keySecret = keySecretEl.value.trim();
+    const prompt = promptEl.value.trim();
+    const modelPath = modelPathEl.value.trim();
+    const imageUrl = imageUrlEl.value.trim();
+
+    if (!baseUrl || !keyId || !keySecret) { setStatus('يرجى تعبئة رابط الـ API ومفتاحي الاعتماد.', 'err'); return; }
+    if (!prompt) { setStatus('يرجى كتابة وصف نصي (prompt).', 'err'); return; }
+    if (!modelPath) { setStatus('يرجى تعبئة مسار النموذج في "إعدادات متقدمة".', 'err'); return; }
+    if (mode === 'image2video' && !imageUrl) { setStatus('يرجى إدخال رابط الصورة.', 'err'); return; }
+
+    persistIfNeeded();
+
+    const headers = { 'Authorization': 'Key ' + keyId + ':' + keySecret, 'Content-Type': 'application/json' };
+    const path = modelPath.startsWith('/') ? modelPath : '/' + modelPath;
+    const input = mode === 'image2video'
+      ? { prompt, input_images: [{ type: 'image_url', image_url: imageUrl }] }
+      : { prompt };
+
+    generateBtn.disabled = true;
+    setStatus('جارٍ إرسال طلب التوليد...', 'info');
+
+    try {
+      const res = await fetch(baseUrl + path, { method: 'POST', headers, body: JSON.stringify({ input }) });
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch { data = { raw: text }; }
+      if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + (data.message || data.error || text).slice(0, 300));
+
+      if (data.status === 'completed') {
+        renderResult(data);
+        setStatus('اكتمل التوليد.', 'ok');
+      } else if (data.status_url) {
+        const final = await pollStatus(data.status_url, headers);
+        renderResult(final);
+        setStatus('اكتمل التوليد.', 'ok');
+      } else {
+        renderResult(data);
+        setStatus('تم استلام رد من الخادم.', 'ok');
+      }
+    } catch (err) {
+      setStatus('حدث خطأ: ' + err.message + ' — إن كان هذا خطأ شبكة (Failed to fetch)، فالسبب الأرجح هو أن واجهة Higgsfield لا تسمح بطلبات مباشرة من المتصفح (CORS).', 'err');
+    } finally {
+      generateBtn.disabled = false;
+    }
+  });
+})();
+</script>
+</body>
+</html>
