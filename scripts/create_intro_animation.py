@@ -81,7 +81,6 @@ def create_frame(screen, bg_color, text, text_rect, image=None, image_rect=None)
         image (pygame.Surface, optional): The image surface. Defaults to None.
         image_rect (pygame.Rect, optional): The image rectangle. Defaults to None.
     """
-    screen.fill(bg_color)
     if image:
         screen.blit(image, image_rect)
     screen.blit(text, text_rect)
